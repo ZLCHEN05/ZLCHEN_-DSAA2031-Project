@@ -19,8 +19,9 @@ class NestedLoopJoinExecutor : public AbstractExecutor {
   const NestedLoopJoinPlanNode *plan_;
   std::unique_ptr<AbstractExecutor> left_executor_;
   std::unique_ptr<AbstractExecutor> right_executor_;
-  std::vector<Tuple> result_tuples_;
-  size_t cursor_{0};
+  Tuple left_tuple_;
+  RID left_rid_;
+  bool has_left_tuple_{false};
 };
 
 }  // namespace onebase

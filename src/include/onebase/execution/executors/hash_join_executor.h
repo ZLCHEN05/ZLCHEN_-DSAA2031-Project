@@ -21,8 +21,11 @@ class HashJoinExecutor : public AbstractExecutor {
   std::unique_ptr<AbstractExecutor> left_executor_;
   std::unique_ptr<AbstractExecutor> right_executor_;
   std::unordered_map<std::string, std::vector<Tuple>> hash_table_;
-  std::vector<Tuple> result_tuples_;
-  size_t cursor_{0};
+  Tuple right_tuple_;
+  RID right_rid_;
+  std::vector<Tuple> *current_bucket_{nullptr};
+  size_t bucket_cursor_{0};
+  bool has_right_tuple_{false};
 };
 
 }  // namespace onebase

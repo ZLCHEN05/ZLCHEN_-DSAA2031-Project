@@ -7,17 +7,40 @@ SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNod
     : AbstractExecutor(exec_ctx), plan_(plan) {}
 
 void SeqScanExecutor::Init() {
-  // TODO(student): Initialize the sequential scan
-  // - Get the table from catalog using plan_->GetTableOid()
-  // - Set up iterator to table_heap->Begin()
-  throw NotImplementedException("SeqScanExecutor::Init");
+  table_info_ = GetExecutorContext()->GetCatalog()->GetTable(plan_->GetTableOid());
+  if (table_info_ == nullptr) {
+    throw OneBaseException("Table not found in catalog", ExceptionType::CATALOG);
+  }
+  iter_ = table_info_->table_->Begin();
+  end_ = table_info_->table_->End();
 }
 
 auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
-  // TODO(student): Return the next tuple from the table
-  // - Advance iterator, skip tuples that don't match predicate
-  // - Return false when no more tuples
-  throw NotImplementedException("SeqScanExecutor::Next");
+  const auto &predicate = plan_->GetPredicate();
+  const auto &schema = table_info_->schema_;
+
+  while (iter_ != end_) {
+    Tuple raw_tuple = *iter_;
+    *rid = iter_.GetRID();
+    ++iter_;
+
+    std::vector<Value> values;
+    for (uint32_t i = 0; i < schema.GetColumnCount(); i++) {
+      values.push_back(raw_tuple.GetValue(&schema, i));
+    }
+    *tuple = Tuple(std::move(values));
+
+    if (predicate == nullptr) {
+      return true;
+    }
+
+    Value result = predicate->Evaluate(tuple, &schema);
+    if (!result.IsNull() && result.GetAsBoolean()) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 }  // namespace onebase
