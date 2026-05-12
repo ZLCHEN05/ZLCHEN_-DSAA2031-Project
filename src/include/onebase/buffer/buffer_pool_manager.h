@@ -9,6 +9,10 @@
 
 namespace onebase {
 
+class BasicPageGuard;
+class ReadPageGuard;
+class WritePageGuard;
+
 class BufferPoolManager {
  public:
   BufferPoolManager(size_t pool_size, DiskManager *disk_manager, size_t replacer_k = LRUK_REPLACER_K);
@@ -22,6 +26,10 @@ class BufferPoolManager {
   auto DeletePage(page_id_t page_id) -> bool;
   auto FlushPage(page_id_t page_id) -> bool;
   void FlushAllPages();
+
+  auto NewPageGuarded(page_id_t *page_id) -> BasicPageGuard;
+  auto FetchPageRead(page_id_t page_id) -> ReadPageGuard;
+  auto FetchPageWrite(page_id_t page_id) -> WritePageGuard;
 
  private:
   size_t pool_size_;

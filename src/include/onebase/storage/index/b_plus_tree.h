@@ -37,6 +37,21 @@ class BPlusTree : public Index {
   auto End() -> Iterator;
 
  private:
+  void InsertIntoParent(page_id_t parent_page_id, page_id_t old_page_id,
+                        const KeyType &key, page_id_t new_page_id);
+
+  template <typename N>
+  auto CoalesceOrRedistribute(N *node, WritePageGuard *guard) -> bool;
+
+  template <typename N>
+  auto Coalesce(N *neighbor_node, N *node, BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator> *parent,
+                int index) -> bool;
+
+  template <typename N>
+  void Redistribute(N *neighbor_node, N *node, int index, bool is_predecessor);
+
+  auto AdjustRoot(BPlusTreePage *old_root_node) -> bool;
+
   BufferPoolManager *bpm_;
   KeyComparator comparator_;
   page_id_t root_page_id_{INVALID_PAGE_ID};

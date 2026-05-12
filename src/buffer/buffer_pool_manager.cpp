@@ -1,6 +1,7 @@
 #include "onebase/buffer/buffer_pool_manager.h"
 #include "onebase/common/exception.h"
 #include "onebase/common/logger.h"
+#include "onebase/buffer/page_guard.h"
 
 namespace onebase {
 
@@ -166,6 +167,21 @@ void BufferPoolManager::FlushAllPages() {
     disk_manager_->WritePage(page_id, page->GetData());
     page->is_dirty_ = false;
   }
+}
+
+auto BufferPoolManager::NewPageGuarded(page_id_t *page_id) -> BasicPageGuard {
+  Page *page = NewPage(page_id);
+  return {this, page};
+}
+
+auto BufferPoolManager::FetchPageRead(page_id_t page_id) -> ReadPageGuard {
+  Page *page = FetchPage(page_id);
+  return {this, page};
+}
+
+auto BufferPoolManager::FetchPageWrite(page_id_t page_id) -> WritePageGuard {
+  Page *page = FetchPage(page_id);
+  return {this, page};
 }
 
 }  // namespace onebase
